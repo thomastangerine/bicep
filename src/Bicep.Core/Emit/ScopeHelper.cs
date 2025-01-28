@@ -48,6 +48,25 @@ namespace Bicep.Core.Emit
                 return null;
             }
 
+            // If scope value is a ternary operator, assign it to its true expression
+            if (scopeValue is TernaryOperationSyntax)
+            {
+                scopeValue = (scopeValue as TernaryOperationSyntax)?.TrueExpression;
+
+                // If ternary operator evaluates to null, handle as above case where scopeValue is null
+                if (scopeValue == null)
+                {
+                    // no scope provided - use the target scope for the file
+                    if (!supportedScopes.HasFlag(semanticModel.TargetScope))
+                    {
+                        logInvalidScopeFunc(bodySyntax, semanticModel.TargetScope, supportedScopes);
+                        return null;
+                    }
+
+                    return null;
+                }
+            }
+
             var (scopeSymbol, indexExpression) = scopeValue switch
             {
                 // scope indexing can only happen with references to module or resource collections
